@@ -4,6 +4,11 @@ import numpy as np
 import nengo
 import math
 
+'''
+This script aims to visualize the probability mass function, f(theta,x), of a neuron given its tuning curve.
+This is a step towards computing the Fisher info conditioned on x.
+'''
+
 # resources:
 # https://towardsdatascience.com/an-intuitive-look-at-fisher-information-2720c40867d8
 # https://en.wikipedia.org/wiki/Fisher_information
@@ -17,18 +22,10 @@ with model:
                             )
 sim = nengo.Simulator(model)
 
-# x: real-world value being represented
-# A: activity matrix
+# theta: real-world value being represented
+# X: activity matrix
 theta, X = nengo.utils.ensemble.tuning_curves(ens, sim)
 theta = theta.T[0]
-
-# Why does the heatmap appear transposed?
-
-# pmf being populated correctly
-# pmf being plotted corrected - test: pmf[i,j] = 5*i + j; gradient along i (rows/y-drection) steeper than along j (cols/x-direction)
-# theta_ (stim) and x_ (firing rate) are being read out properly
-
-# equation is wrong
 
 for neuron in range(X.shape[1]):
 
@@ -41,13 +38,11 @@ for neuron in range(X.shape[1]):
     pmf = np.zeros( (len(x_norm),len(theta)) )
     
     # theta is real-world valued stimulus
-    for j,theta_ in enumerate(x_norm):
-        # x is observed firing rate
+    for j,theta_ in enumerate(theta):
         
+        # x is observed firing rate
         for i,x_ in enumerate(x_norm):
-            # j: columns, i: rows
             pmf[i,j] = ( 1 / ( sigma * np.sqrt( 2 * math.pi ) ) ) * math.exp( - ( theta_ - x_ )**2 / ( 2 * sigma**2 ) )
-            # pmf[i,j] = math.exp( - ( theta_ - x_ ) ** 2  )
         
     fig,(ax1,ax2,cax) = plt.subplots(1,3,
                                     figsize = (9,4),
@@ -77,3 +72,10 @@ for neuron in range(X.shape[1]):
     fig.tight_layout()
     plt.show()
 
+# notes
+# Why does the heatmap appear transposed?
+
+# pmf being populated correctly
+# pmf being plotted corrected - test: pmf[i,j] = 5*i + j; gradient along i (rows/y-drection) steeper than along j (cols/x-direction)
+# theta_ (stim) and x_ (firing rate) are being read out properly
+# equation is wrong?
